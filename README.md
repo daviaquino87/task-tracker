@@ -1,5 +1,7 @@
 # Task Tracker
 
+**Project URL:** https://github.com/daviaquino87/task-tracker
+
 CLI em Node.js para criar, listar, atualizar e acompanhar tarefas com status (`todo`, `in-progress`, `done`). Os dados são persistidos em `tasks.json` no diretório atual.
 
 ## Funcionalidades
@@ -18,7 +20,7 @@ CLI em Node.js para criar, listar, atualizar e acompanhar tarefas com status (`t
 ## Instalação
 
 ```bash
-git clone <url-do-repositorio>
+git clone https://github.com/daviaquino87/task-tracker.git
 cd task-tracker
 npm link
 ```
