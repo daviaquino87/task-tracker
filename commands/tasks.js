@@ -1,11 +1,9 @@
 const { default: InternalError } = require("../config/internalError");
 const { default: STATUS } = require("../constants/status");
-const {
-  inMemoryTasksRepository,
-} = require("../repository/in-memory-tasks.repository");
+const { jsonTasksRepository } = require("../repository/json-tasks.repository");
 const { validate } = require("../utils/validation");
 
-const REPOSITORY = inMemoryTasksRepository;
+const REPOSITORY = jsonTasksRepository;
 
 async function createTaskCommand(args) {
   validate.validateText(...args);
