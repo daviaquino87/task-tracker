@@ -22,6 +22,8 @@ async function start() {
       }
 
       console.error("Unexpected error", error);
+    } finally {
+      continue;
     }
   }
 }

@@ -1,4 +1,5 @@
 const { default: InternalError } = require("../config/internalError");
+const { default: STATUS } = require("../constants/status");
 
 function validateText(...args) {
   if (
@@ -10,4 +11,26 @@ function validateText(...args) {
   }
 }
 
-module.exports = { validateText };
+function validateTaskStatus(status) {
+  if (!Object.values(STATUS).includes(status.toLowerCase())) {
+    throw new InternalError(
+      `Invalid status. Status must be: ${Object.values(STATUS).join(", ")}`,
+    );
+  }
+}
+
+function validateMinLength(field, length) {
+  if (field.length < length) {
+    throw new InternalError(
+      `The input must be less than ${length} characters.`,
+    );
+  }
+}
+
+const validate = {
+  validateText,
+  validateTaskStatus,
+  validateMinLength,
+};
+
+module.exports = { validate };
