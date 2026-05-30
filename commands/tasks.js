@@ -63,16 +63,24 @@ function updateTaskCommand(args) {
   taskRepository.updateTask(id, task);
 }
 
+function deleteTaskCommand(args) {
+  const [id] = args;
+
+  taskRepository.deleteTask(parseInt(id));
+}
+
 const taskService = {
   createTaskCommand,
   listTasksCommand,
   updateTaskCommand,
+  deleteTaskCommand,
 };
 
 const acceptTaskCommands = {
   add: (args) => taskService.createTaskCommand(args),
   list: (args) => taskService.listTasksCommand(args),
   update: (args) => taskService.updateTaskCommand(args),
+  delete: (args) => taskService.deleteTaskCommand(args),
 };
 
 module.exports = { acceptTaskCommands };
