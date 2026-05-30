@@ -1,13 +1,17 @@
 const { default: InternalError } = require("../config/internalError");
 const { default: STATUS } = require("../constants/status");
-const { taskRepository } = require("../repository/tasks");
+const {
+  inMemoryTasksRepository,
+} = require("../repository/in-memory-tasks.repository");
 const { validate } = require("../utils/validation");
 
-function createTaskCommand(args) {
+const REPOSITORY = inMemoryTasksRepository;
+
+async function createTaskCommand(args) {
   validate.validateText(...args);
   validate.validateMinLength(args.join(" "), 5);
 
-  const tasks = taskRepository.listTasks();
+  const tasks = await REPOSITORY.listTasks();
 
   const task = {
     id: parseInt(tasks.length + 1),
@@ -17,17 +21,17 @@ function createTaskCommand(args) {
     updatedAt: new Date().toISOString(),
   };
 
-  taskRepository.addTask(task);
+  await REPOSITORY.addTask(task);
 
   console.log(`Task added successfully (ID: ${task.id})`);
 }
 
-function listTasksCommand(args) {
+async function listTasksCommand(args) {
   const [status] = args;
 
   if (status) validate.validateTaskStatus(status);
 
-  const tasks = taskRepository.listTasks(status);
+  const tasks = await REPOSITORY.listTasks(status);
 
   if (tasks.length === 0) {
     console.log("Any task found.");
@@ -45,7 +49,7 @@ function listTasksCommand(args) {
   });
 }
 
-function updateTaskCommand(args) {
+async function updateTaskCommand(args) {
   let [id, ...rest] = args;
 
   validate.validateText(...rest);
@@ -53,7 +57,7 @@ function updateTaskCommand(args) {
 
   id = parseInt(id);
 
-  const task = taskRepository.findTaskById(id);
+  const task = await REPOSITORY.findTaskById(id);
 
   if (!task) {
     throw new InternalError("Task not found.");
@@ -62,15 +66,15 @@ function updateTaskCommand(args) {
   task.description = rest.join(" ");
   task.updatedAt = new Date().toISOString();
 
-  taskRepository.updateTask(id, task);
+  await REPOSITORY.updateTask(id, task);
 
   console.log(`Task updated successfully (ID: ${id})`);
 }
 
-function deleteTaskCommand(args) {
+async function deleteTaskCommand(args) {
   const [id] = args;
 
-  taskRepository.deleteTask(parseInt(id));
+  await REPOSITORY.deleteTask(parseInt(id));
 
   console.log(`Task deleted successfully (ID: ${id})`);
 }
@@ -83,10 +87,10 @@ const taskService = {
 };
 
 const acceptTaskCommands = {
-  add: (args) => taskService.createTaskCommand(args),
-  list: (args) => taskService.listTasksCommand(args),
-  update: (args) => taskService.updateTaskCommand(args),
-  delete: (args) => taskService.deleteTaskCommand(args),
+  add: async (args) => await taskService.createTaskCommand(args),
+  list: async (args) => await taskService.listTasksCommand(args),
+  update: async (args) => await taskService.updateTaskCommand(args),
+  delete: async (args) => await taskService.deleteTaskCommand(args),
 };
 
 module.exports = { acceptTaskCommands };

@@ -14,7 +14,7 @@ async function start() {
         continue;
       }
 
-      acceptTaskCommands[command](args);
+      await acceptTaskCommands[command](args);
     } catch (error) {
       if (error instanceof InternalError) {
         console.log(error.message);

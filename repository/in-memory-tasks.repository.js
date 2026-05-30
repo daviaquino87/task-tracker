@@ -2,11 +2,11 @@ const { default: InternalError } = require("../config/internalError");
 
 const tasks = [];
 
-function addTask(task) {
+async function addTask(task) {
   tasks.push(task);
 }
 
-function listTasks(status) {
+async function listTasks(status) {
   if (status) {
     return tasks.filter((task) => task.status === status.toLowerCase());
   }
@@ -14,11 +14,11 @@ function listTasks(status) {
   return tasks;
 }
 
-function findTaskById(id) {
+async function findTaskById(id) {
   return tasks.find((task) => task.id === id);
 }
 
-function updateTask(id, task) {
+async function updateTask(id, task) {
   const index = tasks.findIndex((task) => task.id === id);
 
   if (index === -1) {
@@ -28,7 +28,7 @@ function updateTask(id, task) {
   tasks[index] = task;
 }
 
-function deleteTask(id) {
+async function deleteTask(id) {
   const index = tasks.findIndex((task) => task.id === id);
 
   if (index === -1) {
@@ -38,7 +38,7 @@ function deleteTask(id) {
   tasks.splice(index, 1);
 }
 
-const taskRepository = {
+const inMemoryTasksRepository = {
   addTask,
   listTasks,
   updateTask,
@@ -46,4 +46,4 @@ const taskRepository = {
   deleteTask,
 };
 
-module.exports = { taskRepository };
+module.exports = { inMemoryTasksRepository };
