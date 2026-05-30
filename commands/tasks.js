@@ -18,6 +18,8 @@ function createTaskCommand(args) {
   };
 
   taskRepository.addTask(task);
+
+  console.log(`Task added successfully (ID: ${task.id})`);
 }
 
 function listTasksCommand(args) {
@@ -61,12 +63,16 @@ function updateTaskCommand(args) {
   task.updatedAt = new Date().toISOString();
 
   taskRepository.updateTask(id, task);
+
+  console.log(`Task updated successfully (ID: ${id})`);
 }
 
 function deleteTaskCommand(args) {
   const [id] = args;
 
   taskRepository.deleteTask(parseInt(id));
+
+  console.log(`Task deleted successfully (ID: ${id})`);
 }
 
 const taskService = {

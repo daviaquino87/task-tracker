@@ -5,7 +5,7 @@ const { acceptTaskCommands } = require("./commands/tasks");
 async function start() {
   while (true) {
     try {
-      const input = await askQuestion("> ");
+      const input = await askQuestion("task-cli > ");
 
       const [command, ...args] = input.split(" ");
 
