@@ -9,6 +9,7 @@ const tasks = [];
 
 const acceptCommands = {
   add: (task) => addTask(task),
+  list: () => listTasks(),
 };
 
 function addTask(task) {
@@ -18,6 +19,12 @@ function addTask(task) {
   }
 
   tasks.push(task);
+}
+
+function listTasks() {
+  tasks.forEach((task, index) => {
+    console.log(`${index + 1} - ${task}`);
+  });
 }
 
 function askQuestion(question) {
