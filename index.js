@@ -1,31 +1,30 @@
-const { default: InternalError } = require("./config/internalError");
-const { askQuestion } = require("./config");
+#!/usr/bin/env node
+
+const InternalError = require("./config/internalError");
 const { acceptTaskCommands } = require("./commands/tasks");
 
-async function start() {
-  while (true) {
-    try {
-      const input = await askQuestion("task-cli > ");
+async function main() {
+  const [, , command, ...args] = process.argv;
 
-      const [command, ...args] = input.split(" ");
+  if (!command || !Object.hasOwn(acceptTaskCommands, command)) {
+    console.error("Invalid command.");
+    console.error(
+      "Usage: task-cli <add|list|update|delete|mark-in-progress|mark-done> [args]",
+    );
+    process.exit(1);
+  }
 
-      if (!command || !acceptTaskCommands.hasOwnProperty(command)) {
-        console.log("Invalid command");
-        continue;
-      }
-
-      await acceptTaskCommands[command](args);
-    } catch (error) {
-      if (error instanceof InternalError) {
-        console.log(error.message);
-        return;
-      }
-
-      console.error("Unexpected error", error);
-    } finally {
-      continue;
+  try {
+    await acceptTaskCommands[command](args);
+  } catch (error) {
+    if (error instanceof InternalError) {
+      console.error(error.message);
+      process.exit(1);
     }
+
+    console.error("Unexpected error:", error.message);
+    process.exit(1);
   }
 }
 
-start();
+main();

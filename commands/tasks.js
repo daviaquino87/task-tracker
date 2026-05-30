@@ -1,19 +1,19 @@
-const { default: InternalError } = require("../config/internalError");
-const { default: STATUS } = require("../constants/status");
+const InternalError = require("../config/internalError");
+const { STATUS } = require("../constants/status");
 const { jsonTasksRepository } = require("../repository/json-tasks.repository");
 const { validate } = require("../utils/validation");
 
 const REPOSITORY = jsonTasksRepository;
 
 async function createTaskCommand(args) {
-  validate.validateText(...args);
-  validate.validateMinLength(args.join(" "), 5);
+  const description = validate.parseDescription(args);
+  validate.validateMinLength(description, 1);
 
   const tasks = await REPOSITORY.listTasks();
 
   const task = {
-    id: parseInt(tasks.length + 1),
-    description: args.join(" "),
+    id: REPOSITORY.getNextId(tasks),
+    description,
     status: STATUS.TODO,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -32,28 +32,29 @@ async function listTasksCommand(args) {
   const tasks = await REPOSITORY.listTasks(status);
 
   if (tasks.length === 0) {
-    console.log("Any task found.");
+    console.log("No tasks found.");
     return;
   }
 
-  tasks.forEach((task, index) => {
-    console.log(`${index + 1} - 
-        ID: ${task.id}
-        Descrição: ${task.description}
-        Status: ${task.status}
-        Data de criação: ${task.createdAt}
-        Data de atualização: ${task.updatedAt}
-        `);
+  tasks.forEach((task) => {
+    const displayStatus =
+      task.status === "in_progress" ? "in-progress" : task.status;
+    console.log(
+      `[${task.id}] ${task.description} - ${displayStatus} (created: ${task.createdAt}, updated: ${task.updatedAt})`,
+    );
   });
 }
 
 async function updateTaskDescriptionCommand(args) {
-  let [id, ...rest] = args;
+  const [idArg, ...rest] = args;
 
-  validate.validateText(...rest);
-  validate.validateMinLength(rest.join(" "), 5);
+  if (!idArg) {
+    throw new InternalError("Task ID is required.");
+  }
 
-  id = parseInt(id);
+  const id = validate.validateId(idArg);
+  const description = validate.parseDescription(rest);
+  validate.validateMinLength(description, 1);
 
   const task = await REPOSITORY.findTaskById(id);
 
@@ -61,7 +62,7 @@ async function updateTaskDescriptionCommand(args) {
     throw new InternalError("Task not found.");
   }
 
-  task.description = rest.join(" ");
+  task.description = description;
   task.updatedAt = new Date().toISOString();
 
   await REPOSITORY.updateTask(id, task);
@@ -70,17 +71,28 @@ async function updateTaskDescriptionCommand(args) {
 }
 
 async function deleteTaskCommand(args) {
-  const [id] = args;
+  const [idArg] = args;
 
-  await REPOSITORY.deleteTask(parseInt(id));
+  if (!idArg) {
+    throw new InternalError("Task ID is required.");
+  }
+
+  const id = validate.validateId(idArg);
+
+  await REPOSITORY.deleteTask(id);
 
   console.log(`Task deleted successfully (ID: ${id})`);
 }
 
 async function markTaskInProgressCommand(args) {
-  const [id] = args;
+  const [idArg] = args;
 
-  const task = await REPOSITORY.findTaskById(parseInt(id));
+  if (!idArg) {
+    throw new InternalError("Task ID is required.");
+  }
+
+  const id = validate.validateId(idArg);
+  const task = await REPOSITORY.findTaskById(id);
 
   if (!task) {
     throw new InternalError("Task not found.");
@@ -89,15 +101,20 @@ async function markTaskInProgressCommand(args) {
   task.status = STATUS.IN_PROGRESS;
   task.updatedAt = new Date().toISOString();
 
-  await REPOSITORY.updateTask(parseInt(id), task);
+  await REPOSITORY.updateTask(id, task);
 
   console.log(`Task updated successfully (ID: ${id})`);
 }
 
 async function markTaskDoneCommand(args) {
-  const [id] = args;
+  const [idArg] = args;
 
-  const task = await REPOSITORY.findTaskById(parseInt(id));
+  if (!idArg) {
+    throw new InternalError("Task ID is required.");
+  }
+
+  const id = validate.validateId(idArg);
+  const task = await REPOSITORY.findTaskById(id);
 
   if (!task) {
     throw new InternalError("Task not found.");
@@ -106,28 +123,18 @@ async function markTaskDoneCommand(args) {
   task.status = STATUS.DONE;
   task.updatedAt = new Date().toISOString();
 
-  await REPOSITORY.updateTask(parseInt(id), task);
+  await REPOSITORY.updateTask(id, task);
 
   console.log(`Task updated successfully (ID: ${id})`);
 }
 
-const taskService = {
-  createTaskCommand,
-  listTasksCommand,
-  updateTaskDescriptionCommand,
-  deleteTaskCommand,
-  markTaskInProgressCommand,
-  markTaskDoneCommand,
-};
-
 const acceptTaskCommands = {
-  add: async (args) => await taskService.createTaskCommand(args),
-  list: async (args) => await taskService.listTasksCommand(args),
-  update: async (args) => await taskService.updateTaskDescriptionCommand(args),
-  delete: async (args) => await taskService.deleteTaskCommand(args),
-  "mark-in-progress": async (args) =>
-    await taskService.markTaskInProgressCommand(args),
-  "mark-done": async (args) => await taskService.markTaskDoneCommand(args),
+  add: createTaskCommand,
+  list: listTasksCommand,
+  update: updateTaskDescriptionCommand,
+  delete: deleteTaskCommand,
+  "mark-in-progress": markTaskInProgressCommand,
+  "mark-done": markTaskDoneCommand,
 };
 
 module.exports = { acceptTaskCommands };

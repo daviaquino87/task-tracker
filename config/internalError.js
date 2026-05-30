@@ -1,8 +1,8 @@
-export class InternalError extends Error {
+class InternalError extends Error {
   constructor(message) {
     super(message);
     this.name = "InternalError";
   }
 }
 
-export default InternalError;
+module.exports = InternalError;
