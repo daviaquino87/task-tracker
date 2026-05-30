@@ -1,3 +1,4 @@
+const { default: InternalError } = require("../config/internalError");
 const { default: STATUS } = require("../constants/status");
 const { taskRepository } = require("../repository/tasks");
 const { validate } = require("../utils/validation");
@@ -9,7 +10,7 @@ function createTaskCommand(args) {
   const tasks = taskRepository.listTasks();
 
   const task = {
-    id: tasks.length + 1,
+    id: parseInt(tasks.length + 1),
     description: args.join(" "),
     status: STATUS.TODO,
     createdAt: new Date().toISOString(),
@@ -42,14 +43,36 @@ function listTasksCommand(args) {
   });
 }
 
+function updateTaskCommand(args) {
+  let [id, ...rest] = args;
+
+  validate.validateText(...rest);
+  validate.validateMinLength(rest.join(" "), 5);
+
+  id = parseInt(id);
+
+  const task = taskRepository.findTaskById(id);
+
+  if (!task) {
+    throw new InternalError("Task not found.");
+  }
+
+  task.description = rest.join(" ");
+  task.updatedAt = new Date().toISOString();
+
+  taskRepository.updateTask(id, task);
+}
+
 const taskService = {
   createTaskCommand,
   listTasksCommand,
+  updateTaskCommand,
 };
 
 const acceptTaskCommands = {
   add: (args) => taskService.createTaskCommand(args),
   list: (args) => taskService.listTasksCommand(args),
+  update: (args) => taskService.updateTaskCommand(args),
 };
 
 module.exports = { acceptTaskCommands };
