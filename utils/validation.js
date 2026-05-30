@@ -2,6 +2,10 @@ const { default: InternalError } = require("../config/internalError");
 const { default: STATUS } = require("../constants/status");
 
 function validateText(...args) {
+  if (!args.length) {
+    throw new InternalError("The text must not be empty.");
+  }
+
   if (
     !args[0].startsWith('"') ||
     !args[args.length - 1].endsWith('"') ||

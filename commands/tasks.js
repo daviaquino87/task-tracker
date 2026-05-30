@@ -1,14 +1,15 @@
 const { default: STATUS } = require("../constants/status");
 const { taskRepository } = require("../repository/tasks");
 const { validate } = require("../utils/validation");
-const { randomUUID } = require("crypto");
 
 function createTaskCommand(args) {
   validate.validateText(...args);
   validate.validateMinLength(args.join(" "), 5);
 
+  const tasks = taskRepository.listTasks();
+
   const task = {
-    id: randomUUID(),
+    id: tasks.length + 1,
     description: args.join(" "),
     status: STATUS.TODO,
     createdAt: new Date().toISOString(),
