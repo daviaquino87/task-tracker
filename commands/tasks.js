@@ -49,7 +49,7 @@ async function listTasksCommand(args) {
   });
 }
 
-async function updateTaskCommand(args) {
+async function updateTaskDescriptionCommand(args) {
   let [id, ...rest] = args;
 
   validate.validateText(...rest);
@@ -79,18 +79,57 @@ async function deleteTaskCommand(args) {
   console.log(`Task deleted successfully (ID: ${id})`);
 }
 
+async function markTaskInProgressCommand(args) {
+  const [id] = args;
+
+  const task = await REPOSITORY.findTaskById(parseInt(id));
+
+  if (!task) {
+    throw new InternalError("Task not found.");
+  }
+
+  task.status = STATUS.IN_PROGRESS;
+  task.updatedAt = new Date().toISOString();
+
+  await REPOSITORY.updateTask(parseInt(id), task);
+
+  console.log(`Task updated successfully (ID: ${id})`);
+}
+
+async function markTaskDoneCommand(args) {
+  const [id] = args;
+
+  const task = await REPOSITORY.findTaskById(parseInt(id));
+
+  if (!task) {
+    throw new InternalError("Task not found.");
+  }
+
+  task.status = STATUS.DONE;
+  task.updatedAt = new Date().toISOString();
+
+  await REPOSITORY.updateTask(parseInt(id), task);
+
+  console.log(`Task updated successfully (ID: ${id})`);
+}
+
 const taskService = {
   createTaskCommand,
   listTasksCommand,
-  updateTaskCommand,
+  updateTaskDescriptionCommand,
   deleteTaskCommand,
+  markTaskInProgressCommand,
+  markTaskDoneCommand,
 };
 
 const acceptTaskCommands = {
   add: async (args) => await taskService.createTaskCommand(args),
   list: async (args) => await taskService.listTasksCommand(args),
-  update: async (args) => await taskService.updateTaskCommand(args),
+  update: async (args) => await taskService.updateTaskDescriptionCommand(args),
   delete: async (args) => await taskService.deleteTaskCommand(args),
+  "mark-in-progress": async (args) =>
+    await taskService.markTaskInProgressCommand(args),
+  "mark-done": async (args) => await taskService.markTaskDoneCommand(args),
 };
 
 module.exports = { acceptTaskCommands };
